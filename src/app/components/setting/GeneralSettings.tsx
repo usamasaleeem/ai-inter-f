@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useStore } from "../../../store/useStore";
 
 export default function GeneralSettings() {
   const profile = useStore((state: any) => state.organizationProfile);
   const fetchProfile = useStore((state: any) => state.fetchOrganizationProfile);
   const updateOrg = useStore((state: any) => state.updateOrganization);
+  const uploadLogo = useStore((state: any) => state.uploadCompanyLogo);
+  const uploadingLogo = useStore((state: any) => state.uploadingLogo);
 
   const [form, setForm] = useState({
     name: "",
@@ -15,7 +17,8 @@ export default function GeneralSettings() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [updatingSubscription, setUpdatingSubscription] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -30,8 +33,63 @@ export default function GeneralSettings() {
         companySize: profile.companySize || "",
         autoAiInterview: profile.autoAiInterview || false,
       });
+      if (profile.logo) {
+        setLogoPreview(profile.logo);
+      }
     }
   }, [profile]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size should be less than 5MB');
+      return;
+    }
+
+    // Create preview
+    const previewUrl = URL.createObjectURL(file);
+    setLogoPreview(previewUrl);
+
+    // Upload to server
+    const uploadedUrl = await uploadLogo(file);
+    
+    if (!uploadedUrl) {
+      // Revert preview if upload fails
+      setLogoPreview(profile?.logo || null);
+      alert('Failed to upload logo. Please try again.');
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!confirm('Are you sure you want to remove the company logo?')) return;
+    
+    try {
+      // Call API to remove logo
+      const response = await fetch('/api/auth/remove-logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      
+      if (response.ok) {
+        setLogoPreview(null);
+        // Update profile in store
+        await fetchProfile();
+      }
+    } catch (error) {
+      console.error('Error removing logo:', error);
+    }
+  };
 
   const handleSave = async () => {
     try {
@@ -70,7 +128,7 @@ export default function GeneralSettings() {
       case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
-       return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green-800';
     }
   };
 
@@ -88,6 +146,90 @@ export default function GeneralSettings() {
         <p className="text-sm text-gray-500">
           Manage your company details and hiring preferences
         </p>
+      </div>
+
+      {/* Company Logo Section */}
+      <div className="bg-white border rounded-xl p-5 space-y-4">
+        <h2 className="text-sm font-semibold text-gray-700">Company Logo</h2>
+        
+        <div className="flex items-center gap-6">
+          {/* Logo Preview */}
+          <div className="relative">
+            {logoPreview ? (
+              <div className="relative group">
+                <img
+                  src={logoPreview}
+                  alt="Company logo"
+                  className="w-24 h-24 object-cover rounded-xl border border-gray-200"
+                />
+                <button
+                  onClick={handleRemoveLogo}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition shadow-lg opacity-0 group-hover:opacity-100 focus:opacity-100"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-300">
+                <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
+            
+            {/* Upload Overlay on Hover */}
+            {logoPreview && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
+                   onClick={() => fileInputRef.current?.click()}>
+                <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1">
+            <p className="text-sm text-gray-700 mb-1">Company Logo</p>
+            <p className="text-xs text-gray-500 mb-3">
+              Recommended size: 200x200px. Max file size: 5MB. Supported formats: PNG, JPG, SVG
+            </p>
+            <div className="flex gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingLogo}
+                className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {uploadingLogo ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Upload Logo
+                  </>
+                )}
+              </button>
+           
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Subscription & Plan Section */}
@@ -158,8 +300,6 @@ export default function GeneralSettings() {
               )}
             </div>
           )}
-
-          
         </div>
       )}
 

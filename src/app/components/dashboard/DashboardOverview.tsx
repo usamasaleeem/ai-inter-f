@@ -86,31 +86,7 @@ export function DashboardOverview() {
               Overview of your hiring pipeline and candidate analytics
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              className="px-4 py-2 text-sm font-medium rounded-md transition-all"
-              style={{
-                backgroundColor: stripe.bg,
-                border: `1px solid ${stripe.border}`,
-                color: stripe.text.secondary
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = stripe.hover}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = stripe.bg}
-            >
-              Export
-            </button>
-            <button
-              className="px-4 py-2 text-sm font-medium rounded-md transition-all"
-              style={{
-                backgroundColor: stripe.text.primary,
-                color: 'white'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
-              onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
-            >
-              New Job Posting
-            </button>
-          </div>
+    
         </div>
 
         {/* Stats Grid - 5 key metrics */}

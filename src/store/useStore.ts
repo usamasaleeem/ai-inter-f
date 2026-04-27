@@ -58,6 +58,7 @@ interface InterviewSession {
 
 interface Store {
   user: User;
+    orgProfile: Object;
   currentCandidate: Object;
   callId: string | null;
   isAuthenticated: boolean;
@@ -95,12 +96,16 @@ interface Store {
 
   publishJob: (id: string) => void;
   fetchJobs: () => Promise<void>;
+
+   fetchJobsByCompany: (id: string) => void;
   loading: boolean;
   resumeUrl: null,
   resumeContent: null,
   organizationProfile: any;
   profileLoading: boolean;
   fetchOrganizationProfile: () => Promise<void>;
+  uploadCompanyLogo: (file: File) => Promise<string | null>;
+uploadingLogo: boolean;
   uploadResume: (file: File) => Promise<string | null>;
 
   updateCandidateStatus: (id: string, status: string) => void;
@@ -116,6 +121,45 @@ interface Store {
 }
 
 export const useStore = create<Store>((set, get) => ({
+
+
+// Add to your store implementation:
+uploadingLogo: false,
+
+uploadCompanyLogo: async (file: File) => {
+  try {
+    set({ uploadingLogo: true });
+    
+    const formData = new FormData();
+    formData.append("logo", file);
+    
+    const res = await api.post("/auth/logo-upload", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    
+    console.log('Logo upload response:', res.data);
+    
+    const logoUrl = res.data.logoUrl || res.data.url;
+    
+    // Update organization profile with new logo
+    set((state) => ({
+      organizationProfile: {
+        ...state.organizationProfile,
+        logo: logoUrl,
+      },
+    }));
+    
+    return logoUrl;
+  } catch (error: any) {
+    console.error("Logo upload error:", error.response?.data || error.message);
+    return null;
+  } finally {
+    set({ uploadingLogo: false });
+  }
+},
+
   updateOrganization: async (data: any) => {
     try {
       const res = await api.put('/auth/updateprofile', data);
@@ -365,9 +409,24 @@ export const useStore = create<Store>((set, get) => ({
 
   setUser: (user) => set({ user }),
 
-  logout: () => set({
-    user: { id: '', email: '', role: null }
-  }),
+ logout: () => {
+  // Remove token from localStorage
+  localStorage.removeItem('token');
+  localStorage.removeItem('c_id'); // Also remove candidate ID if exists
+  
+  // Reset user state
+  set({
+    user: { id: '', email: '', role: null },
+    isAuthenticated: false,
+    // Optional: Reset other relevant state
+    jobs: [],
+    candidates: [],
+    currentJob: null,
+    organizationProfile: null,
+  });
+  
+  // Optional: Redirect to login page (handle in component)
+},
   currentJob: null,
 
   fetchJobById: async (id) => {
@@ -456,6 +515,23 @@ export const useStore = create<Store>((set, get) => ({
       // adjust depending on backend response
       console.log(res)
       set({ jobs: res.data.jobs || res.data });
+
+    } catch (error: any) {
+      console.error('Fetch jobs error:', error.response?.data || error.message);
+    } finally {
+      set({ loading: false });
+    }
+  },
+    fetchJobsByCompany: async (id) => {
+    try {
+      set({ loading: true });
+
+      const res = await api.get(`/jobs/public/getjobs/${id}`);
+
+      // adjust depending on backend response
+      console.log(res)
+      set({ jobs: res.data.jobs || res.data });
+        set({ orgProfile: res.data.profile });
 
     } catch (error: any) {
       console.error('Fetch jobs error:', error.response?.data || error.message);

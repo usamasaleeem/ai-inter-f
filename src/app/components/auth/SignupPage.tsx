@@ -52,15 +52,9 @@ export function SignupPage() {
       });
 
       // Save user
-      setUser({
-        id: data.organization.id,
-        email: data.organization.email,
-        role: 'employer',
-        name: data.organization.name,
-      });
+
 
       // Save token
-      localStorage.setItem('token', data.tokens.access.token);
 
       // Store user data for checkout
       setUserData(data.organization);

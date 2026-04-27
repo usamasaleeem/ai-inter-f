@@ -18,6 +18,7 @@ import MessageTemplates from './components/setting/MessageTemplate';
 import { SettingsLayout } from './components/SettingsLayout/SettingsLayout';
 import GeneralSettings from './components/setting/GeneralSettings';
 import SuccessPage from './components/auth/SuccessPage';
+import { CompanyJobs } from './components/jobs/CompanyJobs';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -37,6 +38,9 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
+                 <Route path="/jobs/company/:companyId" element={<CompanyJobs />} />
+
+           <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
           <Route path="/interview/:jobId/:candidateId" element={<InterviewSessionPage />} />
                        <Route path="success" element={<SuccessPage />} />
 
