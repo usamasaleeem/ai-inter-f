@@ -38,7 +38,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
-                 <Route path="/jobs/company/:companyId" element={<CompanyJobs />} />
+                 <Route path="/company/:companyId" element={<CompanyJobs />} />
 
            <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
           <Route path="/interview/:jobId/:candidateId" element={<InterviewSessionPage />} />

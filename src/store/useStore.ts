@@ -25,21 +25,6 @@ interface Job {
   publishedAt: string | null;
 }
 
-interface Candidate {
-  id: string;
-  name: string;
-  email: string;
-  jobId: string;
-  jobTitle: string;
-  status: string;
-  aiScore: number | null;
-  skills: string[];
-  experience: string;
-  appliedAt: string;
-  interviewedAt: string | null;
-  avatar: string;
-  tags: string[];
-}
 
 interface InterviewSession {
   candidateId: string | null;
@@ -57,6 +42,22 @@ interface InterviewSession {
 }
 
 interface Store {
+
+//interviuew session
+getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: number, sessionId?: string | undefined, recordingId?: string | undefined) => Promise<{
+  uploadUrl: string;
+  key: string;
+  chunkIndex: number;
+} | null>;
+  uploadChunkDirectly: (chunk: Blob,candidateId: string,jobId: string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => Promise<boolean>;
+  uploadLoading: boolean;
+  currentChunks: Map<number, { key: string; uploaded: boolean }>;
+  
+  
+
+
+
+
   user: User;
     orgProfile: Object;
   currentCandidate: Object;
@@ -65,6 +66,8 @@ interface Store {
   retellAccessToken: string | null;
   callLoading: boolean;
   createRetellCall: (cid: string, jobId: string) => Promise<string | null>;
+  getInterview: (candidate: Object) => Promise<any[] | null>;
+
   endRetellCall: () => Promise<string | null>;
   fetchCandidateById: (id: string) => Promise<string | null>;
 
@@ -72,8 +75,11 @@ interface Store {
   initAuth: () => void;
   authLoading: boolean;
   jobs: Job[];
+
+      interviews: any[]; // ✅ state
   templates: {
     Applied: any[];
+
     Shortlisted: any[];
     Interviewed: any[];
     Hired: any[];
@@ -121,6 +127,106 @@ uploadingLogo: boolean;
 }
 
 export const useStore = create<Store>((set, get) => ({
+  
+  uploadLoading: false,
+  currentChunks: new Map(),
+  // Add the initUpload method
+
+  // Get presigned URL for a chunk
+  getUploadUrl: async (filetype: string,candidateId:string,jobId:string, chunkIndex: number = 0, sessionId?: string, recordingId?: string) => {
+    try {
+      set({ uploadLoading: true });
+      
+      const response = await api.post('/interview/upload-url', {
+        fileType:filetype,
+        chunkIndex,
+        sessionId,
+        recordingId,
+        candidateId,
+        jobId
+      });
+      
+      const { uploadUrl, key, chunkIndex: returnedChunkIndex } = response.data;
+      
+      // Store the key for this chunk
+      const chunks = get().currentChunks;
+      chunks.set(chunkIndex, { key, uploaded: false });
+      set({ currentChunks: chunks });
+      
+      set({ uploadLoading: false });
+      return { uploadUrl, key, chunkIndex: returnedChunkIndex };
+    } catch (error) {
+      console.error('Failed to get upload URL:', error);
+      set({ uploadLoading: false });
+      return null;
+    }
+  },
+  
+  // Upload a chunk directly using the presigned URL
+  uploadChunkDirectly: async (chunk: Blob,candidateId: string,jobId: string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => {
+    try {
+      set({ uploadLoading: true });
+      
+      // Get presigned URL for this chunk
+      const uploadData = await get().getUploadUrl(filetype,candidateId,jobId, chunkIndex, sessionId, recordingId);
+      console.log(uploadData)
+      if (!uploadData) {
+        throw new Error('Failed to get upload URL');
+      }
+      
+      // Upload directly to S3/R2
+      const response = await fetch(uploadData.uploadUrl, {
+        method: 'PUT',
+        body: chunk,
+        headers: {
+          'Content-Type': 'video/webm'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Upload failed with status ${response.status}`);
+      }
+      
+      // Mark chunk as uploaded
+      const chunks = get().currentChunks;
+      chunks.set(chunkIndex, { key: uploadData.key, uploaded: true });
+      set({ currentChunks: chunks });
+      
+      set({ uploadLoading: false });
+      return true;
+    } catch (error) {
+      console.error('Failed to upload chunk:', error);
+      set({ uploadLoading: false });
+      return false;
+    }
+  },
+
+
+
+
+
+
+
+
+  // Flush the current chunk (force upload even if not full)
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Add to your store implementation:
@@ -204,6 +310,28 @@ uploadCompanyLogo: async (file: File) => {
       );
     } finally {
       set({ profileLoading: false });
+    }
+  },
+    getInterview: async (candidate) => {
+    try {
+      set({ callLoading: true });
+
+      const res = await api.post('/interview/get-interview',{
+        candidate
+      });
+      // 🔥 your backend endpoint
+
+      const files = res?.data?.files;
+      console.log(files)
+      set({ interviews: files });
+
+  
+      return files;
+    } catch (error: any) {
+      console.error('Retell call error:', error.response?.data || error.message);
+      return null;
+    } finally {
+
     }
   },
 
@@ -635,6 +763,7 @@ uploadCompanyLogo: async (file: File) => {
       });
 
       localStorage.setItem("c_id", res.data._id);
+      return (res.data._id)
 
     } catch (error: any) {
       console.error(

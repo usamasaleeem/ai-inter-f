@@ -22,7 +22,7 @@ import {
 } from '../ui/select';
 import { Input } from '../ui/input';
 import { CheckCircle, XCircle, Eye, Loader2 } from 'lucide-react';
-import { getAvatarColor, getScoreColor } from '../../../lib/helpers';
+import { formatDate, getAvatarColor, getScoreColor } from '../../../lib/helpers';
 import { Slider } from '../ui/slider';
 
 export function ShortlistPage() {
@@ -31,7 +31,9 @@ export function ShortlistPage() {
   const fetchCandidates = useStore((state) => state.fetchCandidates);
   const candidates = useStore((state) => state.candidates);
   const loading = useStore((state) => state.loading);
-
+const [jobFilter, setJobFilter] = useState<string>('all');
+const jobs = useStore((state) => state.jobs);
+const fetchJobs = useStore((state) => state.fetchJobs);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [scoreRange, setScoreRange] = useState<number[]>([0, 100]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,24 +44,25 @@ export function ShortlistPage() {
     const loadCandidates = async () => {
       setInitialLoading(true);
       await fetchCandidates();
+       await fetchJobs();
       setInitialLoading(false);
     };
     loadCandidates();
   }, []);
 
-  const filteredCandidates = candidates.filter((candidate) => {
-    const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
-    const matchesScore = !candidate?.aiAnalysis?.overallScore || (
-      candidate?.aiAnalysis?.overallScore >= scoreRange[0] && candidate?.aiAnalysis?.overallScore <= scoreRange[1]
-    );
-    const matchesSearch =
-      candidate?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      candidate?.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase());
+const filteredCandidates = candidates.filter((candidate) => {
+  const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
+  const matchesJob = jobFilter === 'all' || candidate.jobId === jobFilter;
+  const matchesScore = !candidate?.aiAnalysis?.overallScore || (
+    candidate?.aiAnalysis?.overallScore >= scoreRange[0] && candidate?.aiAnalysis?.overallScore <= scoreRange[1]
+  );
+  const matchesSearch =
+    candidate?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    candidate?.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesStatus && matchesScore && matchesSearch;
-  });
-
+  return matchesStatus && matchesJob && matchesScore && matchesSearch;
+});
   const handleApprove = async (candidateId: string) => {
     setActionLoading(candidateId);
     try {
@@ -142,7 +145,7 @@ export function ShortlistPage() {
           <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <label className="text-sm">Search</label>
               <Input
@@ -169,6 +172,22 @@ export function ShortlistPage() {
               </Select>
             </div>
 
+<div className="space-y-2">
+  <label className="text-sm">Job</label>
+  <Select value={jobFilter} onValueChange={setJobFilter}>
+    <SelectTrigger>
+      <SelectValue placeholder="All Jobs" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">All Jobs</SelectItem>
+      {jobs.map((job) => (
+        <SelectItem key={job._id} value={job._id}>
+          {job.title}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
             <div className="space-y-2">
               <label className="text-sm">Score Range: {scoreRange[0]} - {scoreRange[1]}</label>
               <Slider
@@ -180,6 +199,8 @@ export function ShortlistPage() {
                 className="mt-2"
               />
             </div>
+
+
           </div>
         </CardContent>
       </Card>
@@ -215,6 +236,7 @@ export function ShortlistPage() {
                   <TableHead>Candidate</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>AI Score</TableHead>
+                         <TableHead>Applied</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -237,7 +259,7 @@ export function ShortlistPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">{candidate.jobTitle}</TableCell>
+                    <TableCell className="text-sm">{candidate.role||'Not Specified'}</TableCell>
                     <TableCell>
                       {candidate?.aiAnalysis?.overallScore ? (
                         <div className="flex items-center gap-2">
@@ -260,10 +282,31 @@ export function ShortlistPage() {
                         <span className="text-sm text-gray-400">Not scored</span>
                       )}
                     </TableCell>
+ <TableCell className="text-sm text-gray-600">
+                    {formatDate(candidate.appliedAt)}
+                  </TableCell>
+
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">
-                        {candidate.status}
-                      </Badge>
+                <TableCell>
+  <Badge 
+    variant="outline" 
+    className={`text-xs px-2 py-0.5 ${
+      candidate.status === 'Shortlisted' 
+        ? 'bg-green-50 text-green-700 border-green-200' 
+        : candidate.status === 'Rejected' 
+        ? 'bg-red-50 text-red-700 border-red-200'
+        : candidate.status === 'Interviewed' 
+        ? 'bg-purple-50 text-purple-700 border-purple-200'
+        : candidate.status === 'In Review' 
+        ? 'bg-blue-50 text-blue-700 border-blue-200'
+        : candidate.status === 'Applied' 
+        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+        : 'bg-gray-50 text-gray-700 border-gray-200'
+    }`}
+  >
+    {candidate.status}
+  </Badge>
+</TableCell>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">

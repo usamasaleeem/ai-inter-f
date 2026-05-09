@@ -269,15 +269,7 @@ export function CreateJobPage() {
             </div>
 
             <div className="flex gap-3 pt-4">
-              {!isEditing && (
-                <Button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, false)}
-                  variant="outline"
-                >
-                  Save as Draft
-                </Button>
-              )}
+             
               <Button
                 type="button"
                 onClick={(e) => handleSubmit(e, isEditing ? false : true)}

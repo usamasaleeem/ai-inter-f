@@ -75,10 +75,10 @@ export function JobPublicPage() {
       }
       
       // Then, submit the application
-      await startInterview(name, email, currentJob._id);
+      const cid=await startInterview(name, email,jobId);
       
       if (autoAiInterview) {
-        navigate(`/interview/${currentJob._id}`);
+        navigate(`/interview/${jobId}/${cid}`);
       } else {
         setSubmittedApplication({ name, email });
         setSuccess(true);

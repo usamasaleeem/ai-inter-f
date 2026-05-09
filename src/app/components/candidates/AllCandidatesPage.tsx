@@ -76,9 +76,9 @@ export function AllCandidatesPage() {
                     {formatDate(candidate.appliedAt)}
                   </TableCell>
                   <TableCell>
-                    {candidate.aiScore ? (
+                    {candidate.aiAnalysis.overallScore ? (
                       <span className={`text-sm ${getScoreColor(candidate.aiScore)}`}>
-                        {candidate.aiScore}
+                        {candidate.aiAnalysis.overallScore}
                       </span>
                     ) : (
                       <span className="text-sm text-gray-400">Not scored</span>

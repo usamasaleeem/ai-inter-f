@@ -79,8 +79,7 @@ audio: {
   const recordingIdRef = useRef<string>(`recording-${Date.now()}`);
   const chunkIndexRef = useRef<number>(0);
   const totalChunksRef = useRef<number>(0);
-// Add this ref next to your other refs (around line 80)
-const recordingFormatRef = useRef<string>('video/webm'); // Default format
+
   // Timer for interview
   useEffect(() => {
     if (callActive) {
@@ -181,7 +180,6 @@ const recordingFormatRef = useRef<string>('video/webm'); // Default format
         return;
       }
       await clientRef.current.startCall({ accessToken: token });
-      clientRef.current.mute();
       setCallActive(true);
       const room = clientRef.current.room;
     
@@ -194,9 +192,6 @@ const recordingFormatRef = useRef<string>('video/webm'); // Default format
     aiStreamRef.current = new MediaStream([track.mediaStreamTrack]);
 
   startVideoRecording();
-  setTimeout(() => {
-       clientRef.current.unmute();
-  }, 3000);
   }
 });
       // Auto-start recording when call starts
@@ -321,30 +316,11 @@ const recordNextSegment = () => {
   if (!recordingStreamRef.current || !isRecordingSegmentRef.current) return;
 
   const chunks: Blob[] = [];
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  const isChrome = /chrome/i.test(navigator.userAgent) && !/edge/i.test(navigator.userAgent);
-
-   let mimeType: string;
-  let blobType: string;
-  
-  if (isSafari) {
-    // Safari only supports MP4
-    mimeType = 'video/mp4';
-    blobType = 'video/mp4';
-    console.log('🍎 Safari detected, using MP4 format');
-  } else {
-    // Chrome, Firefox, Edge support WebM
-    mimeType = 'video/webm';
-    blobType = 'video/webm';
-    console.log('🌐 Chrome/Firefox detected, using WebM format');
-  }
   const mediaRecorder = new MediaRecorder(recordingStreamRef.current, {
-    mimeType: mimeType,
+    mimeType: 'video/webm',
     videoBitsPerSecond: 300000,
     audioBitsPerSecond: 32000,
   });
-
-    recordingFormatRef.current = mimeType;
 
   mediaRecorderRef.current = mediaRecorder;
 
@@ -353,7 +329,7 @@ const recordNextSegment = () => {
   };
 
   mediaRecorder.onstop = async () => {
-    const blob = new Blob(chunks, { type:blobType });
+    const blob = new Blob(chunks, { type: 'video/webm' });
 
     const index = chunkIndexRef.current++;
     totalChunksRef.current++;
@@ -365,8 +341,7 @@ const recordNextSegment = () => {
       jobId!,
       index,
       sessionIdRef.current,
-      recordingIdRef.current,
-      recordingFormatRef.current
+      recordingIdRef.current
     );
 
     setUploadedChunks(prev => prev + 1);
@@ -388,7 +363,7 @@ const recordNextSegment = () => {
       }
     }, 200); // overlap window
 
-  }, 5000);
+  }, 40000);
 };
 
 const stopVideoRecording = async () => {

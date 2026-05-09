@@ -5,6 +5,7 @@ const TEMPLATE_CATEGORIES = [
     "Applied",
     "Shortlisted",
     "Interviewed",
+      "Invited-For-Interview",
     "Hired",
     "Rejected",
 ] as const;
@@ -78,7 +79,9 @@ export default function MessageTemplates() {
     return (
         <div>
             <h1 className="text-2xl font-semibold mb-6">Message Templates</h1>
-
+<div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-lg">
+  <p className="text-sm text-blue-800"> <span className="font-medium">Available variables:</span> Use <code className="px-1.5 py-0.5 bg-blue-100 rounded text-xs">{'{{name}}'}</code> for candidate name, <code className="px-1.5 py-0.5 bg-blue-100 rounded text-xs">{'{{job_title}}'}</code> for job title, <code className="px-1.5 py-0.5 bg-blue-100 rounded text-xs">{'{{company_name}}'}</code> for company name, and <code className="px-1.5 py-0.5 bg-blue-100 rounded text-xs">{'{{interview_link}}'}</code> for interview link.</p>
+</div>
             <div className="space-y-6">
                 {TEMPLATE_CATEGORIES.map((category) => {
                     const categoryTemplates = templates?.[category] || [];

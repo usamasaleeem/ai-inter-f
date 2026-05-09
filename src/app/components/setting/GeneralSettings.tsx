@@ -231,6 +231,55 @@ export default function GeneralSettings() {
           </div>
         </div>
       </div>
+      {/* Public Jobs Page Section */}
+<div className="bg-white border rounded-xl p-5 space-y-4">
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-sm font-semibold text-gray-700">Public Jobs Page</h2>
+      <p className="text-xs text-gray-500 mt-1">
+        Share your company's public job listings page with candidates
+      </p>
+    </div>
+    <button
+      onClick={() => {
+        const companyId = profile?._id || profile?.id;
+        if (companyId) {
+          window.open(`/company/${companyId}`, '_blank');
+        } else {
+          alert('Company ID not found. Please save your company profile first.');
+        }
+      }}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition flex items-center gap-2"
+    >
+      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+      </svg>
+      View Public Page
+    </button>
+  </div>
+  
+  {/* Public Page URL Display */}
+  {profile?._id && (
+    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+      <p className="text-xs text-gray-600 mb-1">Your public jobs page URL:</p>
+      <div className="flex items-center gap-2">
+        <code className="text-xs bg-white px-2 py-1 rounded border text-blue-600 flex-1">
+          {`${window.location.origin}/company/${profile._id}`}
+        </code>
+        <button
+          onClick={() => {
+            const url = `${window.location.origin}/company/${profile._id}`;
+            navigator.clipboard.writeText(url);
+            alert('URL copied to clipboard!');
+          }}
+          className="px-3 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded transition"
+        >
+          Copy
+        </button>
+      </div>
+    </div>
+  )}
+</div>
 
       {/* Subscription & Plan Section */}
       {profile?.subscription && (
