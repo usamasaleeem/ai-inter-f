@@ -60,6 +60,15 @@ getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: 
 
   user: User;
     orgProfile: Object;
+      pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    limit: number;
+  } | null;  // Add this line
+  
   currentCandidate: Object;
   callId: string | null;
   isAuthenticated: boolean;
@@ -71,7 +80,7 @@ getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: 
   endRetellCall: () => Promise<string | null>;
   fetchCandidateById: (id: string) => Promise<string | null>;
 
-  fetchCandidates: () => Promise<void>;
+  fetchCandidates: (page: Number, limit: Number,filter:any) => Promise<void>;
   initAuth: () => void;
   authLoading: boolean;
   jobs: Job[];
@@ -112,7 +121,7 @@ getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: 
   fetchOrganizationProfile: () => Promise<void>;
   uploadCompanyLogo: (file: File) => Promise<string | null>;
 uploadingLogo: boolean;
-  uploadResume: (file: File) => Promise<string | null>;
+  uploadResume: (file: File,name: string,email: string,jobId: string) => Promise<string | null>;
 
   updateCandidateStatus: (id: string, status: string) => void;
   updateCandidateScore: (id: string, score: number) => void;
@@ -418,13 +427,19 @@ uploadCompanyLogo: async (file: File) => {
     }
   },
 
-  uploadResume: async (file: File) => {
+  uploadResume: async (file: File,name,email,jobId) => {
     try {
       set({ loading: true });
 
       const formData = new FormData();
       formData.append("resume", file);
-
+      formData.append('candidateData', JSON.stringify({
+  name:name,
+  email: email,
+  
+  // Any other candidate fields
+}));
+   formData.append("jobId", jobId);
       const res = await api.post("/candidates/resume-upload",
         formData,
         {
@@ -434,12 +449,8 @@ uploadCompanyLogo: async (file: File) => {
         }
       );
       console.log(res.data)
-      const url = res.data.url;
-      const text = res.data.text;
 
-      set({ resumeUrl: url, resumeContent: text });
-
-      return url;
+  return (res.data.candidate._id)
     } catch (error: any) {
       console.error(
         "Resume upload error:",
@@ -448,31 +459,48 @@ uploadCompanyLogo: async (file: File) => {
       return null;
     } finally {
       set({ loading: false });
+      
     }
   },
-  fetchCandidates: async () => {
-
-    try {
-      set({ loading: true });
-
-      const res = await api.get('/candidates/getall'); // 🔥 your backend endpoint
-
-      console.log(res);
-
-
-      set({
-        candidates: res.data.candidates || res.data, // adjust based on backend
-      });
-
-    } catch (error: any) {
-      console.error(
-        'Fetch candidates error:',
-        error.response?.data || error.message
-      );
-    } finally {
-      set({ loading: false });
-    }
-  },
+// Update the fetchCandidates function in your store
+fetchCandidates: async (page = 1, limit = 10,filter={}) => {
+  try {
+    set({ loading: true });
+    
+    // Build request body with pagination and filters
+    const requestBody = {
+      page,
+      limit,
+      filter
+    // This will include status, jobId, minScore, maxScore, search
+    };
+    
+    const res = await api.post('/candidates/getall', requestBody);
+    
+    console.log(res);
+    
+    // Update state with candidates AND pagination info
+    set({
+      candidates: res.data.data || res.data.candidates || [],
+      pagination: res.data.pagination || {
+        currentPage: page,
+        totalPages: 1,
+        totalCount: res.data.candidates?.length || 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+        limit: limit
+      },
+      loading: false
+    });
+    
+  } catch (error: any) {
+    console.error(
+      'Fetch candidates error:',
+      error.response?.data || error.message
+    );
+    set({ loading: false, candidates: [], pagination: null });
+  }
+},
   currentCandidate: null,
   fetchCandidateById: async (id) => {
     try {

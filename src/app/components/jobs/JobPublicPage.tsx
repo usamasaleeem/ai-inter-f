@@ -68,15 +68,13 @@ export function JobPublicPage() {
     
     try {
       // First, upload the resume
-      const uploadSuccess = await uploadResume(resume);
+      const cid = await uploadResume(resume,name, email,jobId);
       
-      if (!uploadSuccess) {
+      if (!cid) {
         throw new Error("Failed to upload resume");
       }
       
-      // Then, submit the application
-      const cid=await startInterview(name, email,jobId);
-      
+
       if (autoAiInterview) {
         navigate(`/interview/${jobId}/${cid}`);
       } else {

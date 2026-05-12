@@ -7,11 +7,10 @@ export function CompanyJobs() {
   const navigate = useNavigate();
   
   const jobs = useStore((state) => state.jobs);
-  const profile = useStore((state) => state.organizationProfile);
+  const profile = useStore((state) => state.orgProfile);
   const loading = useStore((state) => state.loading);
   const fetchJobsByCompany = useStore((state) => state.fetchJobsByCompany);
-  const fetchOrganizationProfile = useStore((state) => state.fetchOrganizationProfile);
-
+ 
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
   const [hoveredJob, setHoveredJob] = useState<string | null>(null);
@@ -20,9 +19,8 @@ export function CompanyJobs() {
   useEffect(() => {
     if (companyId) {
       fetchJobsByCompany(companyId);
-      fetchOrganizationProfile();
     }
-  }, [companyId, fetchJobsByCompany, fetchOrganizationProfile]);
+  }, [companyId, fetchJobsByCompany]);
 
   // Filter only active jobs for public view
   const activeJobs = jobs

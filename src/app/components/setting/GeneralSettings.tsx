@@ -242,7 +242,7 @@ export default function GeneralSettings() {
     </div>
     <button
       onClick={() => {
-        const companyId = profile?._id || profile?.id;
+        const companyId = profile?.slug ||'inactive';
         if (companyId) {
           window.open(`/company/${companyId}`, '_blank');
         } else {
@@ -264,11 +264,11 @@ export default function GeneralSettings() {
       <p className="text-xs text-gray-600 mb-1">Your public jobs page URL:</p>
       <div className="flex items-center gap-2">
         <code className="text-xs bg-white px-2 py-1 rounded border text-blue-600 flex-1">
-          {`${window.location.origin}/company/${profile._id}`}
+          {`${window.location.origin}/company/${profile.slug}`}
         </code>
         <button
           onClick={() => {
-            const url = `${window.location.origin}/company/${profile._id}`;
+            const url = `${window.location.origin}/company/${profile.slug}`;
             navigator.clipboard.writeText(url);
             alert('URL copied to clipboard!');
           }}

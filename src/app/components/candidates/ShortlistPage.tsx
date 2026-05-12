@@ -31,42 +31,71 @@ export function ShortlistPage() {
   const fetchCandidates = useStore((state) => state.fetchCandidates);
   const candidates = useStore((state) => state.candidates);
   const loading = useStore((state) => state.loading);
-const [jobFilter, setJobFilter] = useState<string>('all');
-const jobs = useStore((state) => state.jobs);
-const fetchJobs = useStore((state) => state.fetchJobs);
+  const pagination = useStore((state) => state.pagination);
+  
+  const [jobFilter, setJobFilter] = useState<string>('all');
+  const jobs = useStore((state) => state.jobs);
+  const fetchJobs = useStore((state) => state.fetchJobs);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [scoreRange, setScoreRange] = useState<number[]>([0, 100]);
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
+  // Fetch candidates with pagination
   useEffect(() => {
     const loadCandidates = async () => {
       setInitialLoading(true);
-      await fetchCandidates();
-       await fetchJobs();
+      await fetchCandidates(currentPage, itemsPerPage,
+
+{
+  status: statusFilter !== 'all' ? statusFilter : undefined,
+  jobId: jobFilter !== 'all' ? jobFilter : undefined,
+  minScore: scoreRange[0],
+  maxScore: scoreRange[1],
+  search: searchQuery || undefined
+}
+      );
+      await fetchJobs();
       setInitialLoading(false);
     };
     loadCandidates();
-  }, []);
+  }, [currentPage]);
 
-const filteredCandidates = candidates.filter((candidate) => {
-  const matchesStatus = statusFilter === 'all' || candidate.status === statusFilter;
-  const matchesJob = jobFilter === 'all' || candidate.jobId === jobFilter;
-  const matchesScore = !candidate?.aiAnalysis?.overallScore || (
-    candidate?.aiAnalysis?.overallScore >= scoreRange[0] && candidate?.aiAnalysis?.overallScore <= scoreRange[1]
-  );
-  const matchesSearch =
-    candidate?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate?.jobTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase());
-
-  return matchesStatus && matchesJob && matchesScore && matchesSearch;
+  // Fetch with filters when they change (debounced)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (currentPage !== 1) {
+        setCurrentPage(1);
+      } else {
+        fetchCandidates(1, itemsPerPage,{
+  status: statusFilter !== 'all' ? statusFilter : undefined,
+  jobId: jobFilter !== 'all' ? jobFilter : undefined,
+  minScore: scoreRange[0],
+  maxScore: scoreRange[1],
+  search: searchQuery || undefined
 });
+      }
+    }, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [statusFilter, jobFilter, scoreRange, searchQuery]);
+
   const handleApprove = async (candidateId: string) => {
     setActionLoading(candidateId);
     try {
       await updateCandidateStatus(candidateId, 'Shortlisted');
+      // Refresh current page after status update
+      await fetchCandidates(currentPage, itemsPerPage,{
+  status: statusFilter !== 'all' ? statusFilter : undefined,
+  jobId: jobFilter !== 'all' ? jobFilter : undefined,
+  minScore: scoreRange[0],
+  maxScore: scoreRange[1],
+  search: searchQuery || undefined
+});
     } catch (error) {
       console.error('Error approving candidate:', error);
     } finally {
@@ -78,12 +107,25 @@ const filteredCandidates = candidates.filter((candidate) => {
     setActionLoading(candidateId);
     try {
       await updateCandidateStatus(candidateId, 'Rejected');
+      // Refresh current page after status update
+      await fetchCandidates(currentPage, itemsPerPage,{
+  status: statusFilter !== 'all' ? statusFilter : undefined,
+  jobId: jobFilter !== 'all' ? jobFilter : undefined,
+  minScore: scoreRange[0],
+  maxScore: scoreRange[1],
+  search: searchQuery || undefined
+});
     } catch (error) {
       console.error('Error rejecting candidate:', error);
     } finally {
       setActionLoading(null);
     }
   };
+
+  // Get pagination data
+  const totalCount = pagination?.totalCount || 0;
+  const totalPages = pagination?.totalPages || 0;
+  const startIndex = (currentPage - 1) * itemsPerPage;
 
   // Show initial loading state
   if (initialLoading) {
@@ -99,7 +141,8 @@ const filteredCandidates = candidates.filter((candidate) => {
             <CardTitle>Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-100 rounded animate-pulse"></div>
@@ -172,22 +215,23 @@ const filteredCandidates = candidates.filter((candidate) => {
               </Select>
             </div>
 
-<div className="space-y-2">
-  <label className="text-sm">Job</label>
-  <Select value={jobFilter} onValueChange={setJobFilter}>
-    <SelectTrigger>
-      <SelectValue placeholder="All Jobs" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="all">All Jobs</SelectItem>
-      {jobs.map((job) => (
-        <SelectItem key={job._id} value={job._id}>
-          {job.title}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+            <div className="space-y-2">
+              <label className="text-sm">Job</label>
+              <Select value={jobFilter} onValueChange={setJobFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Jobs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Jobs</SelectItem>
+                  {jobs.map((job) => (
+                    <SelectItem key={job._id} value={job._id}>
+                      {job.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm">Score Range: {scoreRange[0]} - {scoreRange[1]}</label>
               <Slider
@@ -199,8 +243,6 @@ const filteredCandidates = candidates.filter((candidate) => {
                 className="mt-2"
               />
             </div>
-
-
           </div>
         </CardContent>
       </Card>
@@ -208,9 +250,9 @@ const filteredCandidates = candidates.filter((candidate) => {
       <Card className="border-gray-200">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Candidates ({filteredCandidates.length})</CardTitle>
+            <CardTitle>Candidates ({totalCount})</CardTitle>
             <Badge variant="outline">
-              {filteredCandidates.filter((c) => c.status === 'Shortlisted').length} Shortlisted
+              {candidates.filter((c) => c.status === 'Shortlisted').length} Shortlisted
             </Badge>
           </div>
         </CardHeader>
@@ -230,148 +272,182 @@ const filteredCandidates = candidates.filter((candidate) => {
               ))}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Candidate</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>AI Score</TableHead>
-                         <TableHead>Applied</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Tags</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCandidates.map((candidate) => (
-                  <TableRow key={candidate._id} className="hover:bg-gray-50">
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={candidate.avatar} alt={candidate.name} />
-                          <AvatarFallback className={getAvatarColor(candidate.name)}>
-                            {candidate.name?.[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm">{candidate.name}</p>
-                          <p className="text-xs text-gray-600">{candidate.email}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{candidate.role||'Not Specified'}</TableCell>
-                    <TableCell>
-                      {candidate?.aiAnalysis?.overallScore ? (
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm ${getScoreColor(candidate?.aiAnalysis?.overallScore)}`}>
-                            {candidate?.aiAnalysis?.overallScore}
-                          </span>
-                          <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${candidate?.aiAnalysis?.overallScore >= 90
-                                  ? 'bg-green-500'
-                                  : candidate?.aiAnalysis?.overallScore >= 75
-                                    ? 'bg-blue-500'
-                                    : 'bg-yellow-500'
-                                }`}
-                              style={{ width: `${candidate?.aiAnalysis?.overallScore}%` }}
-                            />
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Candidate</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>AI Score</TableHead>
+                    <TableHead>Applied</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {candidates.map((candidate) => (
+                    <TableRow key={candidate._id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={candidate.avatar} alt={candidate.name} />
+                            <AvatarFallback className={getAvatarColor(candidate.name)}>
+                              {candidate.name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="text-sm">{candidate.name}</p>
+                            <p className="text-xs text-gray-600">{candidate.email}</p>
                           </div>
                         </div>
-                      ) : (
-                        <span className="text-sm text-gray-400">Not scored</span>
-                      )}
-                    </TableCell>
- <TableCell className="text-sm text-gray-600">
-                    {formatDate(candidate.appliedAt)}
-                  </TableCell>
-
-                    <TableCell>
-                <TableCell>
-  <Badge 
-    variant="outline" 
-    className={`text-xs px-2 py-0.5 ${
-      candidate.status === 'Shortlisted' 
-        ? 'bg-green-50 text-green-700 border-green-200' 
-        : candidate.status === 'Rejected' 
-        ? 'bg-red-50 text-red-700 border-red-200'
-        : candidate.status === 'Interviewed' 
-        ? 'bg-purple-50 text-purple-700 border-purple-200'
-        : candidate.status === 'In Review' 
-        ? 'bg-blue-50 text-blue-700 border-blue-200'
-        : candidate.status === 'Applied' 
-        ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-        : 'bg-gray-50 text-gray-700 border-gray-200'
-    }`}
-  >
-    {candidate.status}
-  </Badge>
-</TableCell>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {candidate?.tags?.slice(0, 2).map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {candidate?.tags?.length > 2 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{candidate?.tags?.length - 2}
-                          </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm">{candidate.role || 'Not Specified'}</TableCell>
+                      <TableCell>
+                        {candidate?.aiAnalysis?.overallScore ? (
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm ${getScoreColor(candidate?.aiAnalysis?.overallScore)}`}>
+                              {candidate?.aiAnalysis?.overallScore}
+                            </span>
+                            <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full ${candidate?.aiAnalysis?.overallScore >= 90
+                                    ? 'bg-green-500'
+                                    : candidate?.aiAnalysis?.overallScore >= 75
+                                      ? 'bg-blue-500'
+                                      : 'bg-yellow-500'
+                                  }`}
+                                style={{ width: `${candidate?.aiAnalysis?.overallScore}%` }}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-gray-400">Not scored</span>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {formatDate(candidate.appliedAt)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs px-2 py-0.5 ${
+                            candidate.status === 'Shortlisted' 
+                              ? 'bg-green-50 text-green-700 border-green-200' 
+                              : candidate.status === 'Rejected' 
+                              ? 'bg-red-50 text-red-700 border-red-200'
+                              : candidate.status === 'Interviewed' 
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              : candidate.status === 'In Review' 
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : candidate.status === 'Applied' 
+                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        
-                        {candidate.status !== 'Shortlisted' && (
+                          {candidate.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {candidate?.tags?.slice(0, 2).map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                          {candidate?.tags?.length > 2 && (
+                            <Badge variant="secondary" className="text-xs">
+                              +{candidate?.tags?.length - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleApprove(candidate._id)}
-                            className="text-green-600 hover:text-green-700"
-                            disabled={actionLoading === candidate._id}
+                            onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
                           >
-                            {actionLoading === candidate._id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4" />
-                            )}
+                            <Eye className="h-4 w-4" />
                           </Button>
-                        )}
-                        
-                        {candidate.status !== 'Rejected' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleReject(candidate._id)}
-                            className="text-red-600 hover:text-red-700"
-                            disabled={actionLoading === candidate._id}
-                          >
-                            {actionLoading === candidate._id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <XCircle className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          
+                          {candidate.status !== 'Shortlisted' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleApprove(candidate._id)}
+                              className="text-green-600 hover:text-green-700"
+                              disabled={actionLoading === candidate._id}
+                            >
+                              {actionLoading === candidate._id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                          
+                          {candidate.status !== 'Rejected' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleReject(candidate._id)}
+                              className="text-red-600 hover:text-red-700"
+                              disabled={actionLoading === candidate._id}
+                            >
+                              {actionLoading === candidate._id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <XCircle className="h-4 w-4" />
+                              )}
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-2 py-4 border-t mt-4">
+                  <div className="text-sm text-gray-600">
+                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, totalCount)} of {totalCount} candidates
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <div className="flex gap-1">
+                      <span className="px-3 py-1 text-sm bg-blue-600 text-white rounded">
+                        {currentPage}
+                      </span>
+                      <span className="px-3 py-1 text-sm text-gray-600">
+                        of {totalPages}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {!loading && filteredCandidates.length === 0 && (
+          {!loading && candidates.length === 0 && (
             <div className="text-center py-12 text-gray-400">
               <p>No candidates match your filters</p>
             </div>
