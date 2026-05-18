@@ -76,7 +76,7 @@ export function JobPublicPage() {
       
 
       if (autoAiInterview) {
-        navigate(`/interview/${jobId}/${cid}`);
+        navigate(`/interview/${cid}`);
       } else {
         setSubmittedApplication({ name, email });
         setSuccess(true);

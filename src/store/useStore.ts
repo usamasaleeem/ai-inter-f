@@ -44,12 +44,12 @@ interface InterviewSession {
 interface Store {
 
 //interviuew session
-getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: number, sessionId?: string | undefined, recordingId?: string | undefined) => Promise<{
+getUploadUrl: (filetype: string,token: string, chunkIndex?: number, sessionId?: string | undefined, recordingId?: string | undefined) => Promise<{
   uploadUrl: string;
   key: string;
   chunkIndex: number;
 } | null>;
-  uploadChunkDirectly: (chunk: Blob,candidateId: string,jobId: string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => Promise<boolean>;
+  uploadChunkDirectly: (chunk: Blob,token: string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => Promise<boolean>;
   uploadLoading: boolean;
   currentChunks: Map<number, { key: string; uploaded: boolean }>;
   
@@ -74,10 +74,10 @@ getUploadUrl: (filetype: string,candidateId: string,jobId: string, chunkIndex?: 
   isAuthenticated: boolean;
   retellAccessToken: string | null;
   callLoading: boolean;
-  createRetellCall: (cid: string, jobId: string) => Promise<string | null>;
+  createRetellCall: (token2: string) => Promise<string | null>;
   getInterview: (candidate: Object) => Promise<any[] | null>;
 
-  endRetellCall: () => Promise<string | null>;
+  endRetellCall: (token: string) => Promise<string | null>;
   fetchCandidateById: (id: string) => Promise<string | null>;
 
   fetchCandidates: (page: Number, limit: Number,filter:any) => Promise<void>;
@@ -142,7 +142,7 @@ export const useStore = create<Store>((set, get) => ({
   // Add the initUpload method
 
   // Get presigned URL for a chunk
-  getUploadUrl: async (filetype: string,candidateId:string,jobId:string, chunkIndex: number = 0, sessionId?: string, recordingId?: string) => {
+  getUploadUrl: async (filetype: string,token:string, chunkIndex: number = 0, sessionId?: string, recordingId?: string) => {
     try {
       set({ uploadLoading: true });
       
@@ -151,8 +151,7 @@ export const useStore = create<Store>((set, get) => ({
         chunkIndex,
         sessionId,
         recordingId,
-        candidateId,
-        jobId
+      token
       });
       
       const { uploadUrl, key, chunkIndex: returnedChunkIndex } = response.data;
@@ -172,12 +171,12 @@ export const useStore = create<Store>((set, get) => ({
   },
   
   // Upload a chunk directly using the presigned URL
-  uploadChunkDirectly: async (chunk: Blob,candidateId: string,jobId: string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => {
+  uploadChunkDirectly: async (chunk: Blob,token:  string, chunkIndex: number, sessionId: string, recordingId: string,filetype: string) => {
     try {
       set({ uploadLoading: true });
       
       // Get presigned URL for this chunk
-      const uploadData = await get().getUploadUrl(filetype,candidateId,jobId, chunkIndex, sessionId, recordingId);
+      const uploadData = await get().getUploadUrl(filetype,token, chunkIndex, sessionId, recordingId);
       console.log(uploadData)
       if (!uploadData) {
         throw new Error('Failed to get upload URL');
@@ -347,13 +346,12 @@ uploadCompanyLogo: async (file: File) => {
   retellAccessToken: null,
   callId: null,
   callLoading: false,
-  createRetellCall: async (cid, jobId) => {
+  createRetellCall: async (token2) => {
     try {
       set({ callLoading: true });
 
       const res = await api.post('/interview/start', {
-        jobId,
-        candidateId: cid
+      token: token2
       });
       // 🔥 your backend endpoint
 
@@ -365,7 +363,7 @@ uploadCompanyLogo: async (file: File) => {
 
       return token;
     } catch (error: any) {
-      console.error('Retell call error:', error.response?.data || error.message);
+      console.error(' call error:', error.response?.data || error.message);
       return null;
     } finally {
       set({ callLoading: false });
@@ -450,7 +448,7 @@ uploadCompanyLogo: async (file: File) => {
       );
       console.log(res.data)
 
-  return (res.data.candidate._id)
+  return (res.data.token)
     } catch (error: any) {
       console.error(
         "Resume upload error:",
@@ -523,7 +521,7 @@ fetchCandidates: async (page = 1, limit = 10,filter={}) => {
       set({ loading: false });
     }
   },
-  endRetellCall: async () => {
+  endRetellCall: async (token) => {
     try {
       const { callId } = get(); // ✅ get from store
 
@@ -531,6 +529,7 @@ fetchCandidates: async (page = 1, limit = 10,filter={}) => {
 
       const res = await api.post('/interview/end', {
         callId: callId,
+        token:token
       });
       // 🔥 your backend endpoint
 

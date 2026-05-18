@@ -72,276 +72,274 @@ export function DashboardOverview() {
     return styles[status] || styles.Applied;
   };
 
-  return (
-    <div className="min-h-screen" style={{ backgroundColor: '#fafafc', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
-      <div className="max-w-[1440px] mx-auto px-8 py-10">
+return (
+  <div className="min-h-screen" style={{ backgroundColor: '#fafafc', fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+    <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
-        {/* Header - Stripe style */}
-        <div className="flex items-center justify-between mb-10">
+      {/* Header - Stripe style */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 lg:mb-10">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: stripe.text.primary }}>
+            Dashboard
+          </h1>
+          <p className="text-sm mt-1" style={{ color: stripe.text.secondary }}>
+            Overview of your hiring pipeline and candidate analytics
+          </p>
+        </div>
+      </div>
+
+      {/* Stats Grid - Responsive: 1 col mobile, 2 col tablet, 5 col desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-5 mb-6 sm:mb-8 lg:mb-10">
+        {[
+          { label: 'Active jobs', value: activeJobs, icon: BriefcaseIcon, change: '+2', changeText: 'vs last month' },
+          { label: 'Total candidates', value: totalCandidates, icon: Users, change: '+12', changeText: 'new this week' },
+          { label: 'Avg. AI score', value: avgAiScore, icon: Brain, suffix: '/100', change: '+5', changeText: 'vs average' },
+          { label: 'Interviewed', value: interviewedCount, icon: Calendar, change: '+8', changeText: 'completion rate' },
+          { label: 'Shortlisted', value: shortlistedCount, icon: ThumbsUp, change: '23%', changeText: 'selection rate' },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.03 }}
+            className="rounded-xl p-4 sm:p-5"
+            style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <stat.icon className="h-4 w-4" style={{ color: stripe.text.tertiary }} />
+              <span className="text-xs font-medium" style={{ color: '#00a86b' }}>
+                ↑ {stat.change}
+              </span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl sm:text-3xl font-semibold tracking-tight" style={{ color: stripe.text.primary }}>
+                {stat.value}{stat.suffix || ''}
+              </p>
+              <p className="text-xs" style={{ color: stripe.text.tertiary }}>{stat.label}</p>
+              <p className="text-[11px]" style={{ color: stripe.text.tertiary }}>{stat.changeText}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Main two-column layout - Responsive: 1 col mobile, 3 col grid with left 2/3 right 1/3 on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        {/* Left column - spans 2 on desktop */}
+        <div className="lg:col-span-2 space-y-6 lg:space-y-8">
+
+          {/* Recent Activity Feed */}
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight" style={{ color: stripe.text.primary }}>
-              Dashboard
-            </h1>
-            <p className="text-sm mt-1" style={{ color: stripe.text.secondary }}>
-              Overview of your hiring pipeline and candidate analytics
-            </p>
-          </div>
-    
-        </div>
-
-        {/* Stats Grid - 5 key metrics */}
-        <div className="grid grid-cols-5 gap-5 mb-10">
-          {[
-            { label: 'Active jobs', value: activeJobs, icon: BriefcaseIcon, change: '+2', changeText: 'vs last month' },
-            { label: 'Total candidates', value: totalCandidates, icon: Users, change: '+12', changeText: 'new this week' },
-            { label: 'Avg. AI score', value: avgAiScore, icon: Brain, suffix: '/100', change: '+5', changeText: 'vs average' },
-            { label: 'Interviewed', value: interviewedCount, icon: Calendar, change: '+8', changeText: 'completion rate' },
-            { label: 'Shortlisted', value: shortlistedCount, icon: ThumbsUp, change: '23%', changeText: 'selection rate' },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.03 }}
-              className="rounded-xl p-5"
-              style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <stat.icon className="h-4 w-4" style={{ color: stripe.text.tertiary }} />
-                <span className="text-xs font-medium" style={{ color: '#00a86b' }}>
-                  ↑ {stat.change}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <p className="text-3xl font-semibold tracking-tight" style={{ color: stripe.text.primary }}>
-                  {stat.value}{stat.suffix || ''}
-                </p>
-                <p className="text-xs" style={{ color: stripe.text.tertiary }}>{stat.label}</p>
-                <p className="text-[11px]" style={{ color: stripe.text.tertiary }}>{stat.changeText}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Main two-column layout */}
-        <div className="grid grid-cols-3 gap-8">
-          {/* Left column - 2/3 width */}
-          <div className="col-span-2 space-y-8">
-
-            {/* Recent Activity Feed */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-medium" style={{ color: stripe.text.primary }}>Recent activity</h2>
-                <button className="text-xs font-medium" style={{ color: stripe.text.accent }}>View all →</button>
-              </div>
-              <div className="space-y-3">
-                {recentCandidates.map((candidate, idx) => {
-                  const statusStyle = getStatusStyle(candidate.status);
-                  const jobTitle = jobs.find(j => j._id === candidate.jobId)?.title || 'Position';
-                  return (
-                    <motion.div
-                      key={candidate._id}
-                      initial={{ opacity: 0, x: -5 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="rounded-xl p-4 cursor-pointer transition-all"
-                      style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
-                      onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = stripe.hover}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = stripe.bg}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-medium" style={{ backgroundColor: '#f0f0f0', color: stripe.text.secondary }}>
-                            {candidate.name?.charAt(0)}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-medium" style={{ color: stripe.text.primary }}>Recent activity</h2>
+              <button className="text-xs font-medium" style={{ color: stripe.text.accent }}>View all →</button>
+            </div>
+            <div className="space-y-3">
+              {recentCandidates.map((candidate, idx) => {
+                const statusStyle = getStatusStyle(candidate.status);
+                const jobTitle = jobs.find(j => j._id === candidate.jobId)?.title || 'Position';
+                return (
+                  <motion.div
+                    key={candidate._id}
+                    initial={{ opacity: 0, x: -5 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="rounded-xl p-3 sm:p-4 cursor-pointer transition-all"
+                    style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
+                    onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = stripe.hover}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = stripe.bg}
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0" style={{ backgroundColor: '#f0f0f0', color: stripe.text.secondary }}>
+                          {candidate.name?.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                            <p className="text-sm font-medium" style={{ color: stripe.text.primary }}>{candidate.name}</p>
+                            <span className="text-xs" style={{ color: stripe.text.tertiary }}>• {jobTitle}</span>
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-medium" style={{ color: stripe.text.primary }}>{candidate.name}</p>
-                              <span className="text-xs" style={{ color: stripe.text.tertiary }}>• {jobTitle}</span>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
+                            <div className="flex items-center gap-1">
+                              <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: statusStyle.dot }} />
+                              <span className="text-xs" style={{ color: stripe.text.tertiary }}>{candidate.status}</span>
                             </div>
-                            <div className="flex items-center gap-3 mt-1">
-                              <div className="flex items-center gap-1">
-                                <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: statusStyle.dot }} />
-                                <span className="text-xs" style={{ color: stripe.text.tertiary }}>{candidate.status}</span>
-                              </div>
-                              {candidate.aiAnalysis?.overallScore && (
-                                <>
-                                  <span className="text-xs" style={{ color: stripe.text.tertiary }}>•</span>
-                                  <span className="text-xs font-mono" style={{ color: stripe.text.secondary }}>Score: {candidate.aiAnalysis.overallScore}</span>
-                                </>
-                              )}
-                              <span className="text-xs" style={{ color: stripe.text.tertiary }}>•</span>
-                              <span className="text-xs" style={{ color: stripe.text.tertiary }}>
-                                {formatDistanceToNow(new Date(candidate.appliedAt || candidate.createdAt), { addSuffix: true })}
-                              </span>
-                            </div>
+                            {candidate.aiAnalysis?.overallScore && (
+                              <>
+                                <span className="text-xs hidden sm:inline" style={{ color: stripe.text.tertiary }}>•</span>
+                                <span className="text-xs font-mono" style={{ color: stripe.text.secondary }}>Score: {candidate.aiAnalysis.overallScore}</span>
+                              </>
+                            )}
+                            <span className="text-xs hidden sm:inline" style={{ color: stripe.text.tertiary }}>•</span>
+                            <span className="text-xs" style={{ color: stripe.text.tertiary }}>
+                              {formatDistanceToNow(new Date(candidate.appliedAt || candidate.createdAt), { addSuffix: true })}
+                            </span>
                           </div>
                         </div>
-                        <ChevronRight className="h-4 w-4" style={{ color: stripe.text.tertiary }} />
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                      <ChevronRight className="h-4 w-4 hidden sm:block" style={{ color: stripe.text.tertiary }} />
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
+          </div>
 
-            {/* AI Insights Section */}
-            <div>
-              <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>AI intelligence</h2>
-              <div className="grid grid-cols-2 gap-5">
-                <div className="rounded-xl p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
-                  <div className="flex items-start justify-between mb-4">
-                    <Sparkles className="h-5 w-5" style={{ color: stripe.text.accent }} />
-                    <Badge style={{ backgroundColor: '#eef2ff', color: stripe.text.accent, border: 'none' }}>Top insight</Badge>
-                  </div>
-                  <p className="text-sm leading-relaxed mb-3" style={{ color: stripe.text.secondary }}>
-                    Strongest skill cluster among candidates is <span className="font-medium" style={{ color: stripe.text.primary }}>
-                      {Object.entries(
-                        candidates.flatMap(c => c.skills || []).reduce((acc, skill) => {
-                          acc[skill] = (acc[skill] || 0) + 1;
-                          return acc;
-                        }, {} as Record<string, number>)
-                      ).sort((a, b) => b[1] - a[1])[0]?.[0] || 'React'}
-                    </span> with {Math.round((Object.entries(
+          {/* AI Insights Section - Responsive: 1 col mobile, 2 col desktop */}
+          <div>
+            <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>AI intelligence</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+              <div className="rounded-xl p-4 sm:p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
+                <div className="flex items-start justify-between mb-4">
+                  <Sparkles className="h-5 w-5" style={{ color: stripe.text.accent }} />
+                  <Badge style={{ backgroundColor: '#eef2ff', color: stripe.text.accent, border: 'none' }}>Top insight</Badge>
+                </div>
+                <p className="text-sm leading-relaxed mb-3" style={{ color: stripe.text.secondary }}>
+                  Strongest skill cluster among candidates is <span className="font-medium" style={{ color: stripe.text.primary }}>
+                    {Object.entries(
                       candidates.flatMap(c => c.skills || []).reduce((acc, skill) => {
                         acc[skill] = (acc[skill] || 0) + 1;
                         return acc;
                       }, {} as Record<string, number>)
-                    ).sort((a, b) => b[1] - a[1])[0]?.[1] / totalCandidates * 100) || 0)}% of candidates.
-                  </p>
-                  <div className="h-1 w-full rounded-full mt-2" style={{ backgroundColor: '#f0f0f0' }}>
-                    <div className="h-1 rounded-full" style={{ width: '68%', backgroundColor: stripe.text.accent }} />
-                  </div>
+                    ).sort((a, b) => b[1] - a[1])[0]?.[0] || 'React'}
+                  </span> with {Math.round((Object.entries(
+                    candidates.flatMap(c => c.skills || []).reduce((acc, skill) => {
+                      acc[skill] = (acc[skill] || 0) + 1;
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).sort((a, b) => b[1] - a[1])[0]?.[1] / totalCandidates * 100) || 0)}% of candidates.
+                </p>
+                <div className="h-1 w-full rounded-full mt-2" style={{ backgroundColor: '#f0f0f0' }}>
+                  <div className="h-1 rounded-full" style={{ width: '68%', backgroundColor: stripe.text.accent }} />
                 </div>
-                <div className="rounded-xl p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
-                  <div className="flex items-start justify-between mb-4">
-                    <BarChart3 className="h-5 w-5" style={{ color: stripe.text.accent }} />
-                    <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>Pipeline</Badge>
+              </div>
+              <div className="rounded-xl p-4 sm:p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
+                <div className="flex items-start justify-between mb-4">
+                  <BarChart3 className="h-5 w-5" style={{ color: stripe.text.accent }} />
+                  <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>Pipeline</Badge>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: stripe.text.tertiary }}>Applied → Interviewed</span>
+                    <span className="font-mono" style={{ color: stripe.text.primary }}>
+                      {Math.round((interviewedCount / totalCandidates) * 100) || 0}%
+                    </span>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-xs">
-                      <span style={{ color: stripe.text.tertiary }}>Applied → Interviewed</span>
-                      <span className="font-mono" style={{ color: stripe.text.primary }}>
-                        {Math.round((interviewedCount / totalCandidates) * 100) || 0}%
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span style={{ color: stripe.text.tertiary }}>Interviewed → Shortlisted</span>
-                      <span className="font-mono" style={{ color: stripe.text.primary }}>
-                        {interviewedCount ? Math.round((shortlistedCount / interviewedCount) * 100) : 0}%
-                      </span>
-                    </div>
+                  <div className="flex justify-between text-xs">
+                    <span style={{ color: stripe.text.tertiary }}>Interviewed → Shortlisted</span>
+                    <span className="font-mono" style={{ color: stripe.text.primary }}>
+                      {interviewedCount ? Math.round((shortlistedCount / interviewedCount) * 100) : 0}%
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Right column - 1/3 width */}
-          <div className="space-y-8">
+        {/* Right column - 1/3 width on desktop */}
+        <div className="space-y-6 lg:space-y-8">
 
-            {/* Top performers */}
-            <div>
-              <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>Top performers</h2>
-              <div className="space-y-3">
-                {topPerformers.map((candidate) => (
-                  <div
-                    key={candidate._id}
-                    className="rounded-xl p-4 cursor-pointer transition-all"
-                    style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
-                    onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium" style={{ backgroundColor: '#f0f0f0' }}>
-                        {candidate.name?.charAt(0)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium" style={{ color: stripe.text.primary }}>{candidate.name}</p>
-                        <p className="text-xs" style={{ color: stripe.text.tertiary }}>
-                          {jobs.find(j => j._id === candidate.jobId)?.title}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-semibold font-mono" style={{ color: stripe.text.primary }}>
-                          {candidate.aiAnalysis?.overallScore || 0}
-                        </p>
-                        <p className="text-[10px]" style={{ color: stripe.text.tertiary }}>AI score</p>
-                      </div>
-                    </div>
-                    {candidate.aiAnalysis?.recommendation && (
-                      <Badge className="text-[10px]" style={{ backgroundColor: '#eef2ff', color: stripe.text.accent, border: 'none' }}>
-                        {candidate.aiAnalysis.recommendation}
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Active jobs */}
-            <div>
-              <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>Active jobs</h2>
-              <div className="space-y-3">
-                {activeJobsList.map((job) => {
-                  const applicantCount = candidates.filter(c => c.jobId === job._id).length;
-                  return (
-                    <div
-                      key={job._id}
-                      className="rounded-xl p-4 cursor-pointer transition-all"
-                      style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
-                      onClick={() => navigate(`/dashboard/jobs/${job._id}`)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <p className="text-sm font-medium" style={{ color: stripe.text.primary }}>{job.title}</p>
-                        <span className="text-xs font-mono" style={{ color: stripe.text.secondary }}>{applicantCount} apps</span>
-                      </div>
-                      <p className="text-xs mb-3" style={{ color: stripe.text.tertiary }}>{job.experienceLevel}</p>
-                      <div className="flex items-center gap-2">
-                        <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>{job.interviewType}</Badge>
-                        {job.salaryRange && (
-                          <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>{job.salaryRange}</Badge>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-                <button
-                  className="w-full rounded-xl py-3 text-sm font-medium transition-all"
-                  style={{ backgroundColor: stripe.hover, color: stripe.text.accent }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eef2ff'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = stripe.hover}
-                  onClick={() => navigate('/dashboard/jobs/new')}
+          {/* Top performers */}
+          <div>
+            <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>Top performers</h2>
+            <div className="space-y-3">
+              {topPerformers.map((candidate) => (
+                <div
+                  key={candidate._id}
+                  className="rounded-xl p-3 sm:p-4 cursor-pointer transition-all"
+                  style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
+                  onClick={() => navigate(`/dashboard/candidates/${candidate._id}`)}
                 >
-                  + Create new job posting
-                </button>
-              </div>
-            </div>
-
-            {/* Quick stats */}
-            <div className="rounded-xl p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
-              <div className="flex items-center gap-2 mb-4">
-                <Activity className="h-4 w-4" style={{ color: stripe.text.accent }} />
-                <h3 className="text-sm font-medium" style={{ color: stripe.text.primary }}>Pipeline velocity</h3>
-              </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span style={{ color: stripe.text.tertiary }}>Avg. time to interview</span>
-                    <span className="font-mono" style={{ color: stripe.text.primary }}>4.2 days</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0" style={{ backgroundColor: '#f0f0f0' }}>
+                      {candidate.name?.charAt(0)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={{ color: stripe.text.primary }}>{candidate.name}</p>
+                      <p className="text-xs truncate" style={{ color: stripe.text.tertiary }}>
+                        {jobs.find(j => j._id === candidate.jobId)?.title}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="text-lg font-semibold font-mono" style={{ color: stripe.text.primary }}>
+                        {candidate.aiAnalysis?.overallScore || 0}
+                      </p>
+                      <p className="text-[10px]" style={{ color: stripe.text.tertiary }}>AI score</p>
+                    </div>
                   </div>
-                  <div className="h-1 w-full rounded-full" style={{ backgroundColor: '#f0f0f0' }}>
-                    <div className="h-1 rounded-full" style={{ width: '42%', backgroundColor: stripe.text.accent }} />
-                  </div>
+                  {candidate.aiAnalysis?.recommendation && (
+                    <Badge className="text-[10px]" style={{ backgroundColor: '#eef2ff', color: stripe.text.accent, border: 'none' }}>
+                      {candidate.aiAnalysis.recommendation}
+                    </Badge>
+                  )}
                 </div>
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span style={{ color: stripe.text.tertiary }}>Avg. response time</span>
-                    <span className="font-mono" style={{ color: stripe.text.primary }}>1.8 days</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Active jobs */}
+          <div>
+            <h2 className="text-base font-medium mb-4" style={{ color: stripe.text.primary }}>Active jobs</h2>
+            <div className="space-y-3">
+              {activeJobsList.map((job) => {
+                const applicantCount = candidates.filter(c => c.jobId === job._id).length;
+                return (
+                  <div
+                    key={job._id}
+                    className="rounded-xl p-3 sm:p-4 cursor-pointer transition-all"
+                    style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}
+                    onClick={() => navigate(`/dashboard/jobs/${job._id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-2 gap-2">
+                      <p className="text-sm font-medium truncate" style={{ color: stripe.text.primary }}>{job.title}</p>
+                      <span className="text-xs font-mono flex-shrink-0" style={{ color: stripe.text.secondary }}>{applicantCount} apps</span>
+                    </div>
+                    <p className="text-xs mb-3" style={{ color: stripe.text.tertiary }}>{job.experienceLevel}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>{job.interviewType}</Badge>
+                      {job.salaryRange && (
+                        <Badge style={{ backgroundColor: '#f7f7f9', color: stripe.text.secondary, border: 'none' }}>{job.salaryRange}</Badge>
+                      )}
+                    </div>
                   </div>
-                  <div className="h-1 w-full rounded-full" style={{ backgroundColor: '#f0f0f0' }}>
-                    <div className="h-1 rounded-full" style={{ width: '18%', backgroundColor: stripe.text.accent }} />
-                  </div>
+                );
+              })}
+              <button
+                className="w-full rounded-xl py-3 text-sm font-medium transition-all"
+                style={{ backgroundColor: stripe.hover, color: stripe.text.accent }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eef2ff'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = stripe.hover}
+                onClick={() => navigate('/dashboard/jobs/new')}
+              >
+                + Create new job posting
+              </button>
+            </div>
+          </div>
+
+          {/* Quick stats */}
+          <div className="rounded-xl p-4 sm:p-5" style={{ backgroundColor: stripe.bg, border: `1px solid ${stripe.border}` }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="h-4 w-4" style={{ color: stripe.text.accent }} />
+              <h3 className="text-sm font-medium" style={{ color: stripe.text.primary }}>Pipeline velocity</h3>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span style={{ color: stripe.text.tertiary }}>Avg. time to interview</span>
+                  <span className="font-mono" style={{ color: stripe.text.primary }}>4.2 days</span>
+                </div>
+                <div className="h-1 w-full rounded-full" style={{ backgroundColor: '#f0f0f0' }}>
+                  <div className="h-1 rounded-full" style={{ width: '42%', backgroundColor: stripe.text.accent }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span style={{ color: stripe.text.tertiary }}>Avg. response time</span>
+                  <span className="font-mono" style={{ color: stripe.text.primary }}>1.8 days</span>
+                </div>
+                <div className="h-1 w-full rounded-full" style={{ backgroundColor: '#f0f0f0' }}>
+                  <div className="h-1 rounded-full" style={{ width: '18%', backgroundColor: stripe.text.accent }} />
                 </div>
               </div>
             </div>
@@ -349,5 +347,6 @@ export function DashboardOverview() {
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }

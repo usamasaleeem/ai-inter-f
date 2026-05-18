@@ -169,10 +169,28 @@ export function JobDetailsPage() {
                   {jobCandidates.filter((c) => c.status === 'In Review').length}
                 </p>
               </div>
+                         <div>
+                <p className="text-sm text-gray-600 mb-1">Applied</p>
+                <p className="text-3xl">
+                  {jobCandidates.filter((c) => c.status === 'Applied').length}
+                </p>
+              </div>
               <div>
                 <p className="text-sm text-gray-600 mb-1">Interviewed</p>
                 <p className="text-3xl">
                   {jobCandidates.filter((c) => c.status === 'Interviewed').length}
+                </p>
+              </div>
+                <div>
+                <p className="text-sm text-gray-600 mb-1">Invited-For-Interview</p>
+                <p className="text-3xl">
+                  {jobCandidates.filter((c) => c.status === 'Invited-For-Interview').length}
+                </p>
+              </div>
+                 <div>
+                <p className="text-sm text-gray-600 mb-1">Rejected</p>
+                <p className="text-3xl">
+                  {jobCandidates.filter((c) => c.status === 'Rejected').length}
                 </p>
               </div>
               <div>

@@ -25,18 +25,7 @@ export function SettingsLayout() {
             path: "/dashboard/settings/templates",
             icon: FileText,
         },
-        {
-            name: "AI Config",
-            desc: "Interview automation",
-            path: "/dashboard/settings/ai",
-            icon: Brain,
-        },
-        {
-            name: "Team",
-            desc: "Manage members",
-            path: "/dashboard/settings/team",
-            icon: Users,
-        },
+     
     ];
 
     const isActive = (path) => {

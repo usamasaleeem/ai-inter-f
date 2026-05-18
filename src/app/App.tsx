@@ -41,7 +41,7 @@ export default function App() {
                  <Route path="/company/:companyId" element={<CompanyJobs />} />
 
            <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
-          <Route path="/interview/:jobId/:candidateId" element={<InterviewSessionPage />} />
+          <Route path="/interview/:token" element={<InterviewSessionPage />} />
                        <Route path="success" element={<SuccessPage />} />
 
           <Route path="/dashboard" element={

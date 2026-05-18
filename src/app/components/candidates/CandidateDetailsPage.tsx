@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { Progress } from '../ui/progress';
-import { ArrowLeft, Mail, Calendar, CheckCircle, XCircle, Star, Briefcase, MapPin, Clock } from 'lucide-react';
+import { ArrowLeft, Mail, Calendar, CheckCircle, XCircle, Star, Briefcase, MapPin, Clock, Loader2 } from 'lucide-react';
 import { formatDate, getScoreColor, getScoreBgColor, getAvatarColor } from '../../../lib/helpers';
 import { mockTranscript, mockAIAnalysis } from '../../../lib/mockData';
 import { useEffect, useState } from 'react';
@@ -16,6 +16,9 @@ export function CandidateDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedWorkExpIndex, setSelectedWorkExpIndex] = useState(0);
+const [isInviting, setIsInviting] = useState(false);
+const [isShortlisting, setIsShortlisting] = useState(false);
+const [isRejecting, setIsRejecting] = useState(false);
 
   const updateCandidateStatus = useStore((state) => state.updateCandidateStatus);
   const fetchCandidateById = useStore((state) => state.fetchCandidateById);
@@ -81,7 +84,7 @@ useEffect(() => {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <p className="text-gray-600">Candidate not found</p>
-          <Button onClick={() => navigate('/dashboard/candidates')} className="mt-4">
+          <Button onClick={() => navigate('/dashboard/shortlist')} className="mt-4">
             Back to Candidates
           </Button>
         </div>
@@ -89,9 +92,29 @@ useEffect(() => {
     );
   }
 
-  const handleStatusChange = (newStatus: string) => {
-    updateCandidateStatus(candidate._id, newStatus);
-  };
+const handleStatusChange = async (newStatus: string) => {
+  // Set loading state based on status
+  if (newStatus === 'Invited-For-Interview') {
+    setIsInviting(true);
+  } else if (newStatus === 'Shortlisted') {
+    setIsShortlisting(true);
+  } else if (newStatus === 'Rejected') {
+    setIsRejecting(true);
+  }
+  
+  try {
+    await updateCandidateStatus(candidate._id, newStatus);
+    // Optionally show success message or refresh data
+  } catch (error) {
+    console.error('Failed to update status:', error);
+  } finally {
+    // Clear loading states
+    setIsInviting(false);
+    setIsShortlisting(false);
+    setIsRejecting(false);
+  }
+};
+
 
   // Format date safely
   const formatDateSafe = (date: any) => {
@@ -112,40 +135,72 @@ useEffect(() => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigate('/dashboard/pipeline')}
+          onClick={() => navigate('/dashboard/shortlist')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl tracking-tight">Candidate Profile</h1>
         </div>
-        <div className="flex gap-2">
-
-          <Button
-            variant="outline"
-            onClick={() => handleStatusChange('Invited-For-Interview')}
-            className="gap-2"
-          >
-            <Calendar className="h-4 w-4" />
-            Invite For Interview
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleStatusChange('Shortlisted')}
-            className="gap-2"
-          >
-            <CheckCircle className="h-4 w-4" />
-            Shortlist
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => handleStatusChange('Rejected')}
-            className="gap-2 text-red-600 hover:text-red-700"
-          >
-            <XCircle className="h-4 w-4" />
-            Reject
-          </Button>
-        </div>
+    
+<div className="flex gap-2">
+  <Button
+    variant="outline"
+    onClick={() => handleStatusChange('Invited-For-Interview')}
+    disabled={isInviting || isShortlisting || isRejecting}
+    className="gap-2"
+  >
+    {isInviting ? (
+      <>
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Inviting...</span>
+      </>
+    ) : (
+      <>
+        <Calendar className="h-4 w-4" />
+        <span>Invite For Interview</span>
+      </>
+    )}
+  </Button>
+  
+  <Button
+    variant="outline"
+    onClick={() => handleStatusChange('Shortlisted')}
+    disabled={isInviting || isShortlisting || isRejecting}
+    className="gap-2"
+  >
+    {isShortlisting ? (
+      <>
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Shortlisting...</span>
+      </>
+    ) : (
+      <>
+        <CheckCircle className="h-4 w-4" />
+        <span>Shortlist</span>
+      </>
+    )}
+  </Button>
+  
+  <Button
+    variant="outline"
+    onClick={() => handleStatusChange('Rejected')}
+    disabled={isInviting || isShortlisting || isRejecting}
+    className="gap-2 text-red-600 hover:text-red-700"
+  >
+    {isRejecting ? (
+      <>
+        <Loader2 className="h-4 w-4 animate-spin" />
+        <span>Rejecting...</span>
+      </>
+    ) : (
+      <>
+        <XCircle className="h-4 w-4" />
+        <span>Reject</span>
+      </>
+    )}
+  </Button>
+</div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -95,7 +95,7 @@ const TIERS = [
     popular: false,
     icon: <Zap className="w-5 h-5" />,
     iconColor: "text-sky-400 bg-sky-500/10 border-sky-500/20",
-    checkoutLink: "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_KTGMzwkE0w5v9fe2mpO16QJOcVamqJBur958f4CCXrN/redirect",
+    checkoutLink: "https://buy.polar.sh/polar_cl_RNZgNB92pREnFq1dJFeSspVk2i4hLv0kbkbSJ36ohIR",
   },
   {
     name: "Pro",
@@ -117,7 +117,7 @@ const TIERS = [
     popular: true,
     icon: <Sparkles className="w-5 h-5" />,
     iconColor: "text-primary bg-primary/10 border-primary/20",
-    checkoutLink: "https://sandbox-api.polar.sh/v1/checkout-links/polar_cl_b0OfGaKUC96bVN6cv2waXtXOzgRnLOhEwMp2n12DOFF/redirect",
+    checkoutLink: "https://buy.polar.sh/polar_cl_frGzsrBkzIdLvK0231MeiBA5KoZTK2HAj5Yui2iwQdK",
   },
   {
     name: "Enterprise",

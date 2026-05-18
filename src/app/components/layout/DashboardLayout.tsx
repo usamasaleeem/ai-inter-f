@@ -75,15 +75,11 @@ export function DashboardLayout() {
       icon: GitBranch,
     },
     {
-      name: 'Shortlisted',
+      name: 'Candidates',
       path: '/dashboard/shortlist',
       icon: Star,
     },
-    {
-      name: 'All Candidates',
-      path: '/dashboard/candidates',
-      icon: Users,
-    },
+  
   ];
 
   const secondaryNavigation = [
