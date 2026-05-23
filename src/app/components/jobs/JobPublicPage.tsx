@@ -37,7 +37,6 @@ export function JobPublicPage() {
         try {
           setError(null);
           await fetchPublicJobById(jobId);
-          await fetchOrganizationProfile();
         } catch (err) {
           console.error("Error fetching data:", err);
           setError("Failed to load job details. Please try again.");
@@ -46,7 +45,7 @@ export function JobPublicPage() {
     };
     
     fetchData();
-  }, [jobId, fetchPublicJobById, fetchOrganizationProfile]);
+  }, [jobId, fetchPublicJobById]);
 
   // Handle apply/submit with single-step resume upload
   const handleApply = async (e: React.FormEvent) => {
