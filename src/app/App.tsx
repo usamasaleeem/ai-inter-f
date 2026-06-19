@@ -38,7 +38,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/resume" element={<ResumeBuilder />} />
+          <Route path="/resume-builder" element={<ResumeBuilder />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
                  <Route path="/company/:companyId" element={<CompanyJobs />} />
