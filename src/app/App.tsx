@@ -19,6 +19,7 @@ import { SettingsLayout } from './components/SettingsLayout/SettingsLayout';
 import GeneralSettings from './components/setting/GeneralSettings';
 import SuccessPage from './components/auth/SuccessPage';
 import { CompanyJobs } from './components/jobs/CompanyJobs';
+import { ResumeBuilder } from './components/resume/ResumeBuilder';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const token = localStorage.getItem('token');
@@ -36,6 +37,8 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+
+          <Route path="/resume" element={<ResumeBuilder />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/jobs/:jobId/apply" element={<JobPublicPage />} />
                  <Route path="/company/:companyId" element={<CompanyJobs />} />
